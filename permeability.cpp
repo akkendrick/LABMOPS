@@ -30,8 +30,11 @@
 #include <vector>
 #include <cmath>
 #include <cstdlib>
+#include <iostream>
+#include <iomanip>
 
 using namespace plb;
+using namespace std;
 
 typedef double T;
 #define DESCRIPTOR descriptors::D3Q19Descriptor
@@ -147,6 +150,12 @@ void writeVTK(MultiBlockLattice3D<T,DESCRIPTOR>& lattice, plint iter)
     VtkImageOutput3D<T> vtkOut(createFileName("vtk", iter, 6), 1.);
     vtkOut.writeData<float>(*computeVelocityNorm(lattice), "velocityNorm", 1.);
     vtkOut.writeData<3,float>(*computeVelocity(lattice), "velocity", 1.);
+
+    plb_ofstream ofile("velocity.dat");
+    ofile << setprecision(5) << *computeVelocity(lattice) << endl;
+
+    plb_ofstream ofile2("velocityNorm.dat");
+    ofile2 << setprecision(5) << *computeVelocityNorm(lattice) << endl;
 }
 
 T computePermeability(MultiBlockLattice3D<T,DESCRIPTOR>& lattice, T nu, T deltaP, Box3D domain )
