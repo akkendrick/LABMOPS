@@ -18,6 +18,9 @@ poreSize = reshape(poreSize, 101,101,101);
 beadPack_py = load('beadPack_py.txt');
 beadPack_py = reshape(beadPack_py, 101,101,101);
 
+beadPack_regions = load('beadPack_regions.txt');
+beadPack_regions = reshape(beadPack_regions,101,101,101);
+
 %%
 % Plot slice of beadPack
 %figure(1)
@@ -64,6 +67,13 @@ poreSize_mod = permute(poreSize_mod,[3 2 1]);
 poreSize_mod = imrotate(poreSize_mod,-270);
 poreSize_mod = permute(poreSize_mod,[2 1 3]);
 
+beadPack_regions_mod = imrotate(beadPack_regions,-90);
+beadPack_regions_mod = permute(beadPack_regions_mod,[3 2 1]);
+beadPack_regions_mod = imrotate(beadPack_regions_mod,-270);
+beadPack_regions_mod = permute(beadPack_regions_mod,[2 1 3]);
+beadPack_regions_mod = beadPack_regions_mod .* beadPack_mod;
+
+
 poreSize_mod(beadPack_mod == 0) = NaN;
 %poreSize_mod(beadPack_mod == 2) = NaN;
 
@@ -106,10 +116,20 @@ set(gca,'FontSize',14)
 figure(22)
 histogram(poreSize_mod)
 
+%%
 
-%% Attempt to segment and identify pore size distribution
-[BW, N] = bwlabeln(beadPack,8);
-RGB = label2rgb(squeeze(BW(1,:,:)));
+%beadPack_regions_mod(beadPack_regions_mod ~= 1) = 0;
 
 figure()
-slice(RGB,30,20,10)
+
+hold on
+slice(beadPack_regions_mod,1,1,1)
+
+
+
+%% Attempt to segment and identify pore size distribution
+% [BW, N] = bwlabeln(beadPack,8);
+% RGB = label2rgb(squeeze(BW(1,:,:)));
+% 
+% figure()
+% slice(RGB,30,20,10)
