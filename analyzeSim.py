@@ -3,11 +3,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.ndimage as spim
 import scipy.io as sio
+import pickle 
 from matplotlib import cm
 
 ### Load pore structure and LB simulation data
 
-velocityNormData = np.loadtxt('velocityNorm.dat')
+velocityNormData = np.loadtxt('velocityNorm256.dat')
 velocityNormData = np.reshape(velocityNormData,(256,256,256))
 
 data = np.loadtxt("newMonoImage_256.txt",delimiter=',')
@@ -62,6 +63,24 @@ for a in range(0, cubeSize):
                     velocities[key].append(velocityNormData[a,b,c])
         
             
+numPores = len(net['pore.label'])
+avgVelocity = []
+for a in range(0, numPores):
+    key = "%0.1f" % net['pore.label'][a]
 
-print(velocities)            
-            
+    avgVelocity.append(sum(velocities[key])/len(velocities[key]))           
+
+net['avgVelocity'] = avgVelocity
+
+
+#plt.figure(5)
+#plt.scatter(net['pore.diameter'],net['avgVelocity'])
+#plt.show
+
+# Save output data via pickle
+outFile = 'networkInfo_256.pkl'
+
+output = open(outFile,'wb')
+pickle.dump(net, output)
+pickle.dump(avgVelocity,output)
+output.close()
