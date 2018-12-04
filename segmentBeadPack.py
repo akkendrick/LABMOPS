@@ -2,10 +2,11 @@ import porespy as ps
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.ndimage as spim
+import scipy.io as sio
 from matplotlib import cm
 
-data = np.loadtxt("binaryMonoImage.txt",delimiter=',')
-beadPack = np.reshape(data,(101,101,101))
+data = np.loadtxt("newMonoImage_256.txt",delimiter=',')
+beadPack = np.reshape(data,(256,256,256))
 
 dt = spim.distance_transform_edt(input=beadPack)
 dt = spim.gaussian_filter(input=dt, sigma=0.4)
@@ -20,16 +21,43 @@ plt.figure(1)
 plt.imshow((regions*beadPack)[:, :, 50], cmap=plt.cm.nipy_spectral)
 plt.axis('off')
 
+plt.figure(3)
+plt.imshow((peaks*beadPack)[:,:,50],cmap=plt.cm.nipy_spectral)
+
+im = regions*beadPack
+im = im.astype(np.int64)
+net = ps.network_extraction.extract_pore_network(im=im, dt=dt)
+
+# To see all info stored use
+net.keys()
+
+# Try saving dictionary 
+sio.savemat('poreNetwork_256',net)
+
 #regions.shape()
-np.savetxt('beadPack_regions.txt', regions.flatten())
+#np.savetxt('beadPack_regions.txt', regions.flatten())
 
 #print(regions)
 
-    
-#regions2 = ps.network_extraction.snow(dt)
 
-#plt.figure(2)
-#plt.imshow((regions2.peaks*beadPack)[:, :, 50], cmap=plt.cm.nipy_spectral)
-#plt.axis('off')
+# Pore space segmentation does not appear to be working!!! Pores are way too big.
+# What's the best way to deal with this? Is the simulation resolution too low?
+# Need more grid cells to properly identify pores?
 
-#plt.show()
+# Ideas:
+# Try running on model pore structures for verification
+# Run SNOW with more iterations?
+# Read paper for suggestions about this!! 
+
+# regions2 = ps.network_extraction.snow(beadPack)
+
+# plt.figure(2)
+
+# plt.imshow((regions2.regions*regions2.im)[:, :, 50], cmap=plt.cm.nipy_spectral)
+# plt.axis('off')
+
+# poreFlags = regions2.regions * regions2.im
+# np.savetxt('beadPack_regions.txt',poreFlags.flatten())
+
+
+plt.show()
