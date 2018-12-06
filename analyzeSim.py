@@ -82,5 +82,5 @@ outFile = 'networkInfo_256.pkl'
 
 output = open(outFile,'wb')
 pickle.dump(net, output)
-pickle.dump(avgVelocity,output)
+pickle.dump(velocities,output)
 output.close()

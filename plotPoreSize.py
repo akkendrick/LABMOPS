@@ -27,10 +27,12 @@ import matplotlib.pyplot as plt
 # Load binary bead pack data
 # 0's are solid, 1's are pore space
 
-data = np.loadtxt("binaryMonoImage.txt",delimiter=',')
+data = np.loadtxt("newMonoImage_256.txt",delimiter=',')
 #print(data)
 
-beadPack = np.reshape(data,(101,101,101))
+imageSize = 256
+
+beadPack = np.reshape(data,(256,256,256))
 plt.figure(1)
 plt.imshow(beadPack[:,:,1])
 
@@ -48,9 +50,20 @@ np.savetxt('beadPack_py.txt', beadPack.flatten())
 # accessbile from the "inlets"
 
 
-data = ps.metrics.pore_size_distribution(mip)
+injectionPSD = ps.metrics.pore_size_distribution(mip)
 plt.figure(3)
-plt.plot(*data,'b.-')
+plt.plot(*injectionPSD,'b.-')
+
+histPSD = ps.metrics.pore_size_density(mip)
+plt.figure(5)
+plt.hist(histPSD)
+
+
+# lt = ps.filters.local_thickness(data)
+# plt.figure(4)
+# plt.plot(*lt,'b.-')
+
+
 
 plt.show()
 
