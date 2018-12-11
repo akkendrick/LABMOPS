@@ -5,7 +5,7 @@ import scipy.ndimage as spim
 import scipy.io as sio
 from matplotlib import cm
 
-data = np.loadtxt("newMonoImage_256.txt",delimiter=',')
+data = np.loadtxt("polyImage_256.txt",delimiter=',')
 beadPack = np.reshape(data,(256,256,256))
 
 dt = spim.distance_transform_edt(input=beadPack)
@@ -28,12 +28,14 @@ im = regions*beadPack
 im = im.astype(np.int64)
 net = ps.network_extraction.extract_pore_network(im=im, dt=dt)
 
+props = ps.metrics.regionprops_3D(im)
+
 # To see all info stored use
 net.keys()
 
 # Try saving dictionary 
-sio.savemat('poreNetwork_256',net)
-
+sio.savemat('polyPoreNetwork_256',net)
+sio.savemat('polyRegionProps_256',props)
 #regions.shape()
 #np.savetxt('beadPack_regions.txt', regions.flatten())
 

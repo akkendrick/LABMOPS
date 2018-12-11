@@ -8,20 +8,21 @@ from matplotlib import cm
 
 ### Load pore structure and LB simulation data
 
-velocityNormData = np.loadtxt('velocityNorm256.dat')
-velocityNormData = np.reshape(velocityNormData,(256,256,256))
+velocityNormData = np.loadtxt('weibullCubeVelocityNorm_300.dat')
+simSize = 300
+velocityNormData = np.reshape(velocityNormData,(simSize,simSize,simSize))
 
-data = np.loadtxt("newMonoImage_256.txt",delimiter=',')
-beadPack = np.reshape(data,(256,256,256))
+data = np.loadtxt("weibull300_cube.txt",delimiter=',')
+beadPack = np.reshape(data,(simSize,simSize,simSize))
 
 beadPack = np.transpose(beadPack,(1,2,0))
 
-#plt.figure(2)
-#plt.imshow(velocityNormData[:,:,100], cmap=plt.cm.nipy_spectral)
+plt.figure(2)
+plt.imshow(velocityNormData[:,:,100], cmap=plt.cm.nipy_spectral)
 
-#plt.imshow(beadPack[:,:,100],cmap=plt.cm.nipy_spectral)
+plt.imshow(beadPack[:,:,100],cmap=plt.cm.nipy_spectral)
 
-#plt.imshow((beadPack*velocityNormData)[:,:,100],cmap=plt.cm.nipy_spectral)
+plt.imshow((beadPack*velocityNormData)[:,:,100],cmap=plt.cm.nipy_spectral)
 
 ### Compute pore network information
 
@@ -34,9 +35,9 @@ peaks = ps.network_extraction.trim_nearby_peaks(peaks=peaks, dt=dt)
 
 regions = ps.network_extraction.partition_pore_space(im=dt, peaks=peaks)
 
-# plt.figure(1)
-# plt.imshow((regions*beadPack)[:, :, 50], cmap=plt.cm.nipy_spectral)
-# plt.axis('off')
+plt.figure(1)
+plt.imshow((regions*beadPack)[:, :, 50], cmap=plt.cm.nipy_spectral)
+plt.axis('off')
 
 im = regions*beadPack
 im = im.astype(np.int64)
@@ -72,15 +73,22 @@ for a in range(0, numPores):
 
 net['avgVelocity'] = avgVelocity
 
+#props = ps.metrics.regionprops_3D(im)
+
 
 #plt.figure(5)
 #plt.scatter(net['pore.diameter'],net['avgVelocity'])
 #plt.show
 
 # Save output data via pickle
-outFile = 'networkInfo_256.pkl'
+outFile = 'weibullCubeNetworkInfo_300.pkl'
 
 output = open(outFile,'wb')
 pickle.dump(net, output)
-pickle.dump(velocities,output)
+pickle.dump(velocities, output)
+
+#pickle.dump(props, output)
+
 output.close()
+
+

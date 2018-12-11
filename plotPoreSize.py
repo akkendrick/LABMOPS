@@ -27,12 +27,12 @@ import matplotlib.pyplot as plt
 # Load binary bead pack data
 # 0's are solid, 1's are pore space
 
-data = np.loadtxt("newMonoImage_256.txt",delimiter=',')
+data = np.loadtxt("weibull300_cube.txt",delimiter=',')
 #print(data)
 
-imageSize = 256
+imageSize = 300
 
-beadPack = np.reshape(data,(256,256,256))
+beadPack = np.reshape(data,(imageSize,imageSize,imageSize))
 plt.figure(1)
 plt.imshow(beadPack[:,:,1])
 

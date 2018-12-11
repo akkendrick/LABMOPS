@@ -6,7 +6,7 @@ import scipy.io as sio
 import pickle 
 from matplotlib import cm
 
-fileName = 'networkInfo_256.pkl'
+fileName = 'weibullCubeNetworkInfo_300.pkl'
 inputFile = open(fileName,'rb')
 
 net = pickle.load(inputFile)
