@@ -5,9 +5,12 @@ import matplotlib.pyplot as plt
 
 final_image = np.load('subBeadPackPy.npy')
 
+# current data is from Jan 15 2021
+# https://www.digitalrocksportal.org/projects/175/sample/181/
+
 # Pull out a sub image
 orig_image = final_image
-final_image = final_image[0:250, 0:250, 250]
+final_image = final_image[0:250, 0:250, 1]
 im = final_image
 copyImage = np.array(im)
 copyImage.astype(bool)
@@ -26,7 +29,7 @@ for x in range(20):
     copyImage[im == 0] = 1
     copyImage[im == 1] = 0
 
-    im2 = ps.generators.overlapping_spheres(shape=[250, 250], radius=10
+    im2 = ps.generators.overlapping_spheres(shape=im.shape, radius=10
                                             , porosity=iterPorosity)
     imStep = copyImage.astype(bool) * im2
     fileName = "poreStructure_porosity_" + str(iterPorosity) + "_radius_" + str(radius)
@@ -35,7 +38,9 @@ for x in range(20):
     imStep[imStepCopy == 0] = 1
     #imStep[imStepCopy == 1] = 0
 
-    lt = ps.filters.local_thickness(imStep,sizes=400)
+
+    #lt = ps.filters.local_thickness(imStep,sizes=50,parallel=True,cores=16)
+    lt = ps.filters.local_thickness(imStep,sizes=20)
     #poreSim = ps.filters.porosimetry(imStep, sizes=10)
     print(ps.metrics.porosity(imStep))
     sizeDist = ps.metrics.pore_size_distribution(lt)
@@ -43,6 +48,8 @@ for x in range(20):
    # chordSim = ps.metrics.chord_counts(im)
     # chordSim = ps.filters.apply_chords(imStep)
     #sizeDist = ps.metrics.chord_length_distribution(chordSim)
+
+    print(imStep.shape)
 
     fig = plt.figure(1)
     ax1 = fig.add_subplot(121)
@@ -53,7 +60,7 @@ for x in range(20):
 
     ax2 = fig.add_subplot(122)
     ax2.set_title('Pore Image for \n secondary porosity of ' + str(iterPorosity))
-    ax2.imshow(imStep)
+    ax2.imshow(imStep[0:250,0:250])
 
 
     plt.savefig(fileName+"_plot.png")

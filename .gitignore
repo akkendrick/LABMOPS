@@ -535,3 +535,7 @@ Makefile~
 /.idea/misc.xml
 /.idea/modules.xml
 /out.dat
+
+*.dat
+
+*.png
