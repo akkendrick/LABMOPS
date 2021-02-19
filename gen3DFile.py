@@ -16,8 +16,8 @@ copyImage.astype(bool)
 
 # adding secondary porosity
 radius=5
-startPorosity=0.04
-porosityStep = 0.01
+startPorosity=0.02
+porosityStep = 0.02
 numSteps = 14
 
 secondPorosity = startPorosity + numSteps * porosityStep
@@ -29,7 +29,7 @@ copyImage[im == 1] = 0
 im2 = ps.generators.overlapping_spheres(shape=im.shape, radius=10, porosity=secondPorosity)
 imStep = copyImage.astype(bool) * im2
 fileName = "poreStructure3D_porosity_" + str(secondPorosity) + "_radius_" + str(radius)
-vtkName = "poreStructureVTK_" + str(secondPorosity) + "_radius_" + str(radius)
+vtkName = "poreStructure3DVTK_" + str(secondPorosity) + "_radius_" + str(radius)
 
 imStepCopy = np.array(copyImage)
 imStep[imStepCopy == 0] = 1
