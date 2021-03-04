@@ -1,3 +1,6 @@
+# code to make simulation files in 3D
+# use this to generate files for palabos fluid simulation
+# also generates python files for reading
 import numpy as np
 import porespy as ps
 import matplotlib.pyplot as plt
@@ -14,8 +17,8 @@ im = final_image
 copyImage = np.array(im)
 copyImage.astype(bool)
 
-# adding secondary porosity
 radius=5
+# adding secondary porosity
 startPorosity=0.02
 porosityStep = 0.02
 numSteps = 14
@@ -38,6 +41,8 @@ plt.imshow(imStep[0:250,0:250,20])
 plt.show()
 
 print(imStep.shape)
+
+np.save('finalSimFile3D.npy', imStep)
 
 ps.io.to_palabos(imStep,fileName+".dat",0)
 ps.io.to_vtk(imStep,vtkName)
