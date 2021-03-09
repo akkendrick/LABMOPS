@@ -12,7 +12,9 @@ final_image = np.load('subBeadPackPy.npy')
 
 # Pull out a sub image
 orig_image = final_image
-final_image = final_image[0:250, 0:250, 0:250]
+final_image = final_image[0:250, 0:250, 0:10]
+#np.save('subBeadPackPySmall.npy', final_image)
+
 im = final_image
 copyImage = np.array(im)
 copyImage.astype(bool)
@@ -31,13 +33,13 @@ copyImage[im == 1] = 0
 
 im2 = ps.generators.overlapping_spheres(shape=im.shape, radius=10, porosity=secondPorosity)
 imStep = copyImage.astype(bool) * im2
-fileName = "poreStructure3D_porosity_" + str(secondPorosity) + "_radius_" + str(radius)
-vtkName = "poreStructure3DVTK_" + str(secondPorosity) + "_radius_" + str(radius)
+fileName = "poreStructure3Dsmall_porosity_" + str(secondPorosity) + "_radius_" + str(radius)
+vtkName = "poreStructure3DVTKsmall_" + str(secondPorosity) + "_radius_" + str(radius)
 
 imStepCopy = np.array(copyImage)
 imStep[imStepCopy == 0] = 1
 
-plt.imshow(imStep[0:250,0:250,20])
+plt.imshow(imStep[0:250,0:250,2])
 plt.show()
 
 print(imStep.shape)
