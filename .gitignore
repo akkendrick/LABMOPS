@@ -1075,3 +1075,9 @@ Makefile~
 *.dat
 
 *.png
+
+*.vti
+
+*.npy
+
+*.mat
