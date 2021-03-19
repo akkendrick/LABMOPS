@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 final_image = np.load('beadpack_out.npy')
 
 # current data is from Jan 15 2021
-# https://www.digitalrocksportal.org/projects/175/sample/181/
+# v
 
 imSize = 512
 
