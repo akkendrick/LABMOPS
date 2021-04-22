@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 final_image = np.load('beadpack_out.npy')
 
 # current data is from Jan 15 2021
-# v
 
-imSize = 512
+
+imSize = 250
 
 # Pull out a sub image
 orig_image = final_image
