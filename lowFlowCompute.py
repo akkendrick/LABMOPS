@@ -6,19 +6,19 @@ import skimage as ski
 import tqdm
 
 
-imageSize = 250
+imageSize = 512
 
-primaryImage = np.load('subBeadPackPy250_justSpheres.npy')
-secondaryImage = np.load('finalSimFile3D250.npy')
+primaryImage = np.load('subBeadPackPy512_justSpheres.npy')
+secondaryImage = np.load('finalSimFile3D512.npy')
 primaryImage[primaryImage == 255] = 1
 
 primaryImage = np.transpose(primaryImage)
 secondaryImage = np.transpose(secondaryImage)
 
-velSecondaryMat = sio.loadmat('velNormSecondary.mat')
+velSecondaryMat = sio.loadmat('/home/akendrick/Research/LABMOPS/VelocityFiles/velocityNormCodeSecondary_0_00008.mat')
 velDataNormSecondary = velSecondaryMat['velNorm']
 
-velPrimaryMat = sio.loadmat('velNormPrimary.mat')
+velPrimaryMat = sio.loadmat('/home/akendrick/Research/LABMOPS/VelocityFiles/velocityNormCodePrimary_0_00008.mat')
 velDataNormPrimary = velPrimaryMat['velNorm']
 
 # Define overall variables used to analyze the data
@@ -46,7 +46,6 @@ secondaryRegions = snowFiltSecondary.regions
 # Skeleton for secondary image
 cubeSize = len(secondaryImage)
 visit = np.zeros(len(np.unique(secondaryRegions)))
-secondaryPoreDiamImage = np.zeros(secondaryImage.shape)
 allSecondaryRegions = np.unique(secondaryRegions)
 tempImage = np.zeros(secondaryRegions.shape)
 secondaryPoreDiamVectorSkeleton = np.zeros(len(allSecondaryRegions))
@@ -61,23 +60,20 @@ secondarySkelImage = ski.morphology.skeletonize(secondaryImage)
 # Save data on the skeleton
 secondaryVelocitiesSkeleton = []
 secondaryPoreDiamSkeleton = []
-secondaryPoreRegionSkeleton = []
 
 secondaryFiltSkelImage = np.where(secondarySkelImage,True,False)
 secondaryVelocitiesSkeleton = velDataNormSecondary[secondaryFiltSkelImage]
 secondaryPoreRegionSkeleton = secondaryRegions[secondaryFiltSkelImage]
 
 for a in tqdm.tqdm(range(0,len(allSecondaryRegions)), 'Secondary Regions Loop'):
-            regionLabel = a
             currentRegion = a
-            if regionLabel != 0: # Don't want grains to be counted
-                if visit[regionLabel] == 0:
-                    visit[regionLabel] = 1
-                    # Adjust indices for pore information, regionlabel = 0 is pore 1 in poreInfo
-                    poreDiam = secondaryPoreDiamVec[regionLabel - 1]
-                    secondaryPoreDiamImage[secondaryRegions == regionLabel] = poreDiam
+            if currentRegion != 0: # Don't want grains to be counted
+                if visit[currentRegion] == 0:
+                    visit[currentRegion] = 1
+                    # Adjust indices for pore information, currentRegion = 0 is pore 1 in poreInfo
+                    regionImage = np.where(secondaryPoreRegionSkeleton == currentRegion)
+                    skeletonPoreVel = secondaryVelocitiesSkeleton[regionImage]
 
-                    skeletonPoreVel = secondaryVelocitiesSkeleton[secondaryPoreRegionSkeleton == currentRegion]
                     secondaryMeanPoreVelocity = np.append(secondaryMeanPoreVelocity, np.mean(skeletonPoreVel))
                     secondary_metric_PoreVelocity = np.append(secondary_metric_PoreVelocity, np.median(skeletonPoreVel))
 
@@ -122,23 +118,21 @@ primarySkelImage = ski.morphology.skeletonize(primaryImage)
 # Save data on the skeleton
 primaryVelocitiesSkeleton = []
 primaryPoreDiamSkeleton = []
-primaryPoreRegionSkeleton = []
 
 primaryFiltSkelImage = np.where(primarySkelImage,True,False)
 primaryVelocitiesSkeleton = velDataNormPrimary[primaryFiltSkelImage]
 primaryPoreRegionSkeleton = primaryRegions[primaryFiltSkelImage]
 
 for a in tqdm.tqdm(range(0,len(allPrimaryRegions)), 'Primary Regions loop'):
-            regionLabel = a
             currentRegion = a
-            if regionLabel != 0: # Don't want grains to be counted
-                if visit[regionLabel] == 0:
-                    visit[regionLabel] = 1
-                    # Adjust indices for pore information, regionlabel = 0 is pore 1 in poreInfo
-                    poreDiam = primaryPoreDiamVec[regionLabel - 1]
-                    primaryPoreDiamImage[primaryRegions == regionLabel] = poreDiam
+            if currentRegion != 0: # Don't want grains to be counted
+                if visit[currentRegion] == 0:
+                    visit[currentRegion] = 1
 
-                    skeletonPoreVel = primaryVelocitiesSkeleton[primaryPoreRegionSkeleton == currentRegion]
+                    regionImage = np.where(primaryPoreRegionSkeleton == currentRegion)
+                    skeletonPoreVel = primaryVelocitiesSkeleton[regionImage]
+
+                    #skeletonPoreVel = primaryVelocitiesSkeleton[primaryPoreRegionSkeleton == currentRegion]
                     primaryMeanPoreVelocity = np.append(primaryMeanPoreVelocity, np.mean(skeletonPoreVel))
                     primary_metric_PoreVelocity = np.append(primary_metric_PoreVelocity, np.median(skeletonPoreVel))
 
@@ -240,18 +234,30 @@ bigPoreCount = 0
 smallPoreIMOut = np.zeros(secondaryImage.shape)
 smallPoreIM = np.zeros(secondaryImage.shape)
 
+# Optimize this or figure something out
 for a in tqdm.tqdm(range(0,len(secondarySkeletonPoreRegion)),'Pore Volume Loop'):
 
     currentRegion = secondarySkeletonPoreRegion[a]
     currentPoreVolume = secondarySkeletonPoreVolume[a]
+    regionInds = np.where(secondaryRegions == currentRegion)
 
     if currentPoreVolume > poreVolumeThresh:
-        bigPoreIMOut[secondaryRegions == currentRegion] = 255
-        bigPoreIM[secondaryRegions == currentRegion] = 1
+        bigPoreIM[regionInds] = 1
         bigPoreCount = bigPoreCount + 1
     else:
-        smallPoreIMOut[secondaryRegions == currentRegion] = 125
-        smallPoreIM[secondaryRegions == currentRegion] = 1
+        smallPoreIM[regionInds] = 1
+
+# Format data for paraview output
+bigPoreIMOut = np.copy(bigPoreIM)
+poreSpace = np.where(bigPoreIM == 1)
+bigPoreIMOut[poreSpace] = 255
+
+smallPoreIMOut = np.copy(smallPoreIM)
+poreSpace = np.where(smallPoreIM == 1)
+smallPoreIMOut[poreSpace] = 255
+
+np.save('bigPoreIMOut.npy', bigPoreIMOut)
+np.save('smallPoreIMOut.npy', smallPoreIM)
 
 print('Number of big pores is',str(bigPoreCount))
 

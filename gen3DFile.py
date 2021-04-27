@@ -10,7 +10,7 @@ final_image = np.load('beadpack_out.npy')
 # current data is from Jan 15 2021
 
 
-imSize = 250
+imSize = 512
 
 # Pull out a sub image
 orig_image = final_image
