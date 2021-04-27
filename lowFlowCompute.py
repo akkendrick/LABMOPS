@@ -200,11 +200,9 @@ highFlowBigPoreDiam = bigSecondaryPores[bigSecondaryPoreVel > lowFlowVelCutoff]
 print('There are',str(len(lowFlowBigPoreDiam)),'low flow pores of large pore diameter')
 print('There are',str(len(highFlowBigPoreDiam)),'high flow pores of large pore diameter')
 
-lowFlowBigIMOut = np.zeros(secondaryImage.shape)
 lowFlowBigIM = np.zeros(secondaryImage.shape)
 lowFlowBigCount = 0
 
-highFlowBigIMOut = np.zeros(secondaryImage.shape)
 highFlowBigIM = np.zeros(secondaryImage.shape)
 highFlowBigCount = 0
 
@@ -213,13 +211,13 @@ for a in tqdm.tqdm(range(0,len(secondarySkeletonPoreRegion)),'Flow Velocity Loop
     currentRegion = secondarySkeletonPoreRegion[a]
 
     if currentRegion in lowFlowBigPoreRegions:
-        lowFlowBigIMOut[secondaryRegions == currentRegion] = 255
-        lowFlowBigIM[secondaryRegions == currentRegion] = 1
+        regionInds = np.where(secondaryRegions == currentRegion)
+        lowFlowBigIM[regionInds] = 1
         lowFlowBigCount = lowFlowBigCount + 1
     else:
         if secondarySkeletonPoreVolume[a] > poreVolumeThresh:
-            highFlowBigIMOut[secondaryRegions == currentRegion] = 255
-            highFlowBigIM[secondaryRegions == currentRegion] = 1
+            regionInds = np.where(secondaryRegions == currentRegion)
+            highFlowBigIM[regionInds] = 1
             highFlowBigCount = highFlowBigCount + 1
             #print('High Flow Big Pore', str(currentRegion))
 
@@ -232,20 +230,16 @@ bigPoreIM = np.zeros(secondaryImage.shape)
 bigPoreCount = 0
 
 smallPoreIMOut = np.zeros(secondaryImage.shape)
-smallPoreIM = np.zeros(secondaryImage.shape)
+smallPoreIM = np.copy(secondaryImage)
 
-# Optimize this or figure something out
 for a in tqdm.tqdm(range(0,len(secondarySkeletonPoreRegion)),'Pore Volume Loop'):
-
     currentRegion = secondarySkeletonPoreRegion[a]
     currentPoreVolume = secondarySkeletonPoreVolume[a]
-    regionInds = np.where(secondaryRegions == currentRegion)
-
     if currentPoreVolume > poreVolumeThresh:
+        regionInds = np.where(secondaryRegions == currentRegion)
         bigPoreIM[regionInds] = 1
+        smallPoreIM[regionInds] = 0
         bigPoreCount = bigPoreCount + 1
-    else:
-        smallPoreIM[regionInds] = 1
 
 # Format data for paraview output
 bigPoreIMOut = np.copy(bigPoreIM)
@@ -256,8 +250,33 @@ smallPoreIMOut = np.copy(smallPoreIM)
 poreSpace = np.where(smallPoreIM == 1)
 smallPoreIMOut[poreSpace] = 255
 
-np.save('bigPoreIMOut.npy', bigPoreIMOut)
-np.save('smallPoreIMOut.npy', smallPoreIM)
+lowFlowBigIMOut = np.copy(lowFlowBigIM)
+trueSpace = np.where(lowFlowBigIM == 1)
+lowFlowBigIMOut[trueSpace] = 255
+
+highFlowBigIMOut = np.copy(highFlowBigIM)
+trueSpace = np.where(highFlowBigIM == 1)
+highFlowBigIMOut[trueSpace] = 255
+
+# Save np files for easy future plotting access
+# np.save('bigPoreIMOut.npy', bigPoreIMOut)
+# np.save('smallPoreIMOut.npy', smallPoreIMOut)
+# np.save('highFlowBig.npy',highFlowBigIMOut)
+# np.save('lowFlowBig.npy',lowFlowBigIM)
+
+# Write vtk Files
+# print('----------------------------------------------')
+# print('Writing Paraview out')
+# ps.io.to_vtk(bigPoreIMOut,'bigPoreIMOut')
+# ps.io.to_vtk(smallPoreIMOut,'smallPoreIMOut')
+# ps.io.to_vtk(highFlowBigIMOut,'highFlowBig')
+# ps.io.to_vtk(lowFlowBigIMOut,'lowFlowBig')
+# ps.io.to_vtk(secondaryImage,'secondaryImage')
+# ps.io.to_vtk(primaryImage,'primaryImage')
+# ps.io.to_vtk(velDataNormSecondary,'velDataNormSecondary')
+# print('Finished writing')
+# print('----------------------------------------------')
+
 
 print('Number of big pores is',str(bigPoreCount))
 
