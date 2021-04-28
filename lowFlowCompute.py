@@ -160,7 +160,7 @@ slice = 35
 
 fig, (p1, p2) = plt.subplots(1, 2)
 
-fig.suptitle('Secondary pore space and velocity map')
+fig.suptitle('Primary pore space and velocity map')
 p1.imshow(velDataNormPrimary[:,:,slice])
 p2.imshow(primaryImage[:,:,slice])
 
@@ -184,6 +184,7 @@ sns.distplot(primaryPoreVolumeVec, ax=axes[0], hist=True, kde=False,
 axes[0].set_title('Primary porosity only')
 axes[0].set_xlabel('Pore Volume (Lattice units)')
 axes[0].set_ylim([0,100])
+axes[0].plot([poreVolumeThresh, poreVolumeThresh],[0,yMax],'r',lw=5)
 
 sns.distplot(secondaryPoreVolumeVec, ax=axes[1], hist=True, kde=False,
              bins=int(80), color = 'darkblue',
@@ -192,8 +193,13 @@ sns.distplot(secondaryPoreVolumeVec, ax=axes[1], hist=True, kde=False,
 axes[1].set_title('Added Secondary porosity')
 axes[1].set_xlabel('Pore Volume (Lattice units)')
 axes[1].set_ylim([0,100])
+axes[1].plot([poreVolumeThresh, poreVolumeThresh],[0,yMax],'r',lw=5)
 
-fig.savefig('poreVolumeHist.png', dpi=300, facecolor='w', edgecolor='w')
+figStr = 'poreVolumeHist_pressure_'+str(simPressure)+'.png'
+fig.show()
+fig.savefig(figStr, dpi=300, facecolor='w', edgecolor='w')
+
+
 ################################
 
 bins = np.linspace(0, 0.00009, num=20)
@@ -220,14 +226,19 @@ axes[0].tick_params(axis='x', labelrotation=90)
 axes[0].set_ylim([0,100])
 axes[0].set_xlabel('Pore Velocity Metric Range on Skeleton', fontsize=18)
 axes[0].set_ylabel('Count', fontsize=18)
+axes[0].plot([lowFlowVelCutoff, lowFlowVelCutoff],[0,yMax],'r',lw=5)
 
 axes[1].set_title('Secondary Sample', fontsize=24)
 axes[1].tick_params(axis='x', labelrotation=90)
 axes[1].set_ylim([0,100])
 axes[1].set_xlabel('Pore Velocity Metric Range on Skeleton', fontsize=18)
 axes[1].set_ylabel('Count', fontsize=18)
+axes[1].plot([lowFlowVelCutoff, lowFlowVelCutoff],[0,yMax],'r',lw=5)
 
-fig.savefig('bothSamplesMetric_Hist.png', dpi=300, facecolor='w', edgecolor='w')
+figStr = 'poreVelocityHist_pressure_'+str(simPressure)+'.png'
+fig.show()
+fig.savefig(figStr, dpi=300, facecolor='w', edgecolor='w')
+
 
 ########################################
 
@@ -254,7 +265,7 @@ axes[1].set_xlim([0,np.max(secondarySkeletonPoreVolume)])
 axes[1].plot([poreVolumeThresh, poreVolumeThresh],[0,yMax],'r',lw=5)
 axes[1].plot([0,np.max(secondarySkeletonPoreVolume)],[lowFlowVelCutoff, lowFlowVelCutoff],'g',lw=5)
 
-figStr = 'poreRegionPlot_pressure_'+str(simPressure)+'.png'
+figStr = 'poreRegion_pressure_'+str(simPressure)+'.png'
 fig.show()
 fig.savefig(figStr, dpi=300, facecolor='w', edgecolor='w')
 
@@ -344,18 +355,18 @@ np.save('smallPoreIMOut.npy', smallPoreIMOut)
 np.save('highFlowBig.npy',highFlowBigIMOut)
 np.save('lowFlowBig.npy',lowFlowBigIM)
 
-#Write vtk Files
-print('----------------------------------------------')
-print('Writing Paraview out')
-ps.io.to_vtk(bigPoreIMOut,'bigPoreIMOut')
-ps.io.to_vtk(smallPoreIMOut,'smallPoreIMOut')
-ps.io.to_vtk(highFlowBigIMOut,'highFlowBig')
-ps.io.to_vtk(lowFlowBigIMOut,'lowFlowBig')
-ps.io.to_vtk(secondaryImage,'secondaryImage')
-ps.io.to_vtk(primaryImage,'primaryImage')
-ps.io.to_vtk(velDataNormSecondary,'velDataNormSecondary')
-print('Finished writing')
-print('----------------------------------------------')
+# #Write vtk Files
+# print('----------------------------------------------')
+# print('Writing Paraview out')
+# ps.io.to_vtk(bigPoreIMOut,'bigPoreIMOut')
+# ps.io.to_vtk(smallPoreIMOut,'smallPoreIMOut')
+# ps.io.to_vtk(highFlowBigIMOut,'highFlowBig')
+# ps.io.to_vtk(lowFlowBigIMOut,'lowFlowBig')
+# ps.io.to_vtk(secondaryImage,'secondaryImage')
+# ps.io.to_vtk(primaryImage,'primaryImage')
+# ps.io.to_vtk(velDataNormSecondary,'velDataNormSecondary')
+# print('Finished writing')
+# print('----------------------------------------------')
 
 
 print('Number of big pores is',str(bigPoreCount))
