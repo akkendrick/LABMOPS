@@ -4,7 +4,11 @@ import matplotlib.pyplot as plt
 import scipy.io as sio
 import skimage as ski
 import tqdm
+import os
+import seaborn as sns
+import pandas as pd
 
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
 imageSize = 512
 
@@ -15,10 +19,10 @@ primaryImage[primaryImage == 255] = 1
 primaryImage = np.transpose(primaryImage)
 secondaryImage = np.transpose(secondaryImage)
 
-velSecondaryMat = sio.loadmat('/home/akendrick/Research/LABMOPS/VelocityFiles/velocityNormCodeSecondary_0_00008.mat')
+velSecondaryMat = sio.loadmat(dir_path+'/velocityFiles/velocityNormCodeSecondary_0_00008.mat')
 velDataNormSecondary = velSecondaryMat['velNorm']
 
-velPrimaryMat = sio.loadmat('/home/akendrick/Research/LABMOPS/VelocityFiles/velocityNormCodePrimary_0_00008.mat')
+velPrimaryMat = sio.loadmat(dir_path+'/velocityFiles/velocityNormCodePrimary_0_00008.mat')
 velDataNormPrimary = velPrimaryMat['velNorm']
 
 # Define overall variables used to analyze the data
@@ -26,7 +30,7 @@ resolution = 16.81E-6 # adding resolution in meters
 lowFlowVelCutoff = 1.42 * 10 ** float(-5) # 0.5 * 10 ** float(-5)
 poreDiamThresh = 20
 poreVolumeThresh = 35000
-simPressure = 0.00005
+simPressure = 0.00008
 
 # Secondary
 #################################################
@@ -150,6 +154,82 @@ for a in tqdm.tqdm(range(0,len(allPrimaryRegions)), 'Primary Regions loop'):
 
 # Plot data
 ########################################################################################################
+# Plot pore space and velocity
+
+slice = 35
+
+fig, (p1, p2) = plt.subplots(1, 2)
+
+fig.suptitle('Secondary pore space and velocity map')
+p1.imshow(velDataNormPrimary[:,:,slice])
+p2.imshow(primaryImage[:,:,slice])
+
+fig.savefig('primaryPoreImage.png', dpi=300, facecolor='w', edgecolor='w')
+
+fig, (p1, p2) = plt.subplots(1, 2)
+
+fig.suptitle('Secondary pore space and velocity map')
+p1.imshow(velDataNormSecondary[:,:,slice])
+p2.imshow(secondaryImage[:,:,slice])
+
+fig.savefig('secondaryPoreImage.png', dpi=300, facecolor='w', edgecolor='w')
+
+################################
+
+fig, axes = plt.subplots(1, 2, figsize=(18, 10))
+sns.distplot(primaryPoreVolumeVec, ax=axes[0], hist=True, kde=False,
+             bins=int(80), color = 'darkblue',
+             hist_kws={'edgecolor':'black'},
+             kde_kws={'linewidth': 4})
+axes[0].set_title('Primary porosity only')
+axes[0].set_xlabel('Pore Volume (Lattice units)')
+axes[0].set_ylim([0,100])
+
+sns.distplot(secondaryPoreVolumeVec, ax=axes[1], hist=True, kde=False,
+             bins=int(80), color = 'darkblue',
+             hist_kws={'edgecolor':'black'},
+             kde_kws={'linewidth': 4})
+axes[1].set_title('Added Secondary porosity')
+axes[1].set_xlabel('Pore Volume (Lattice units)')
+axes[1].set_ylim([0,100])
+
+fig.savefig('poreVolumeHist.png', dpi=300, facecolor='w', edgecolor='w')
+################################
+
+bins = np.linspace(0, 0.00009, num=20)
+#np.append(bins,0.0001)
+bins = np.append(bins, 0.0001)
+bins = np.insert(bins, 1, 0.00000001)
+
+df_primary = pd.DataFrame({'skelVelPrimary': primary_metric_PoreVelocity,
+                        'vel_groupPrimary': pd.cut(primary_metric_PoreVelocity, bins=bins, right=False)})
+
+df_secondary = pd.DataFrame({'skelVelSecondary': secondary_metric_PoreVelocity,
+                        'vel_groupSecondary': pd.cut(secondary_metric_PoreVelocity, bins=bins, right=False)})
+
+
+############################################################
+
+fig, axes = plt.subplots(1, 2, figsize=(20, 16))
+
+sns.countplot(data=df_primary,x='vel_groupPrimary',ax=axes[0] )
+sns.countplot(data=df_secondary,x='vel_groupSecondary',ax=axes[1])
+
+axes[0].set_title('Primary Sample', fontsize=24)
+axes[0].tick_params(axis='x', labelrotation=90)
+axes[0].set_ylim([0,100])
+axes[0].set_xlabel('Pore Velocity Metric Range on Skeleton', fontsize=18)
+axes[0].set_ylabel('Count', fontsize=18)
+
+axes[1].set_title('Secondary Sample', fontsize=24)
+axes[1].tick_params(axis='x', labelrotation=90)
+axes[1].set_ylim([0,100])
+axes[1].set_xlabel('Pore Velocity Metric Range on Skeleton', fontsize=18)
+axes[1].set_ylabel('Count', fontsize=18)
+
+fig.savefig('bothSamplesMetric_Hist.png', dpi=300, facecolor='w', edgecolor='w')
+
+########################################
 
 yMax = 0.0001
 
@@ -258,24 +338,24 @@ highFlowBigIMOut = np.copy(highFlowBigIM)
 trueSpace = np.where(highFlowBigIM == 1)
 highFlowBigIMOut[trueSpace] = 255
 
-# Save np files for easy future plotting access
-# np.save('bigPoreIMOut.npy', bigPoreIMOut)
-# np.save('smallPoreIMOut.npy', smallPoreIMOut)
-# np.save('highFlowBig.npy',highFlowBigIMOut)
-# np.save('lowFlowBig.npy',lowFlowBigIM)
+#Save np files for easy future plotting access
+np.save('bigPoreIMOut.npy', bigPoreIMOut)
+np.save('smallPoreIMOut.npy', smallPoreIMOut)
+np.save('highFlowBig.npy',highFlowBigIMOut)
+np.save('lowFlowBig.npy',lowFlowBigIM)
 
-# Write vtk Files
-# print('----------------------------------------------')
-# print('Writing Paraview out')
-# ps.io.to_vtk(bigPoreIMOut,'bigPoreIMOut')
-# ps.io.to_vtk(smallPoreIMOut,'smallPoreIMOut')
-# ps.io.to_vtk(highFlowBigIMOut,'highFlowBig')
-# ps.io.to_vtk(lowFlowBigIMOut,'lowFlowBig')
-# ps.io.to_vtk(secondaryImage,'secondaryImage')
-# ps.io.to_vtk(primaryImage,'primaryImage')
-# ps.io.to_vtk(velDataNormSecondary,'velDataNormSecondary')
-# print('Finished writing')
-# print('----------------------------------------------')
+#Write vtk Files
+print('----------------------------------------------')
+print('Writing Paraview out')
+ps.io.to_vtk(bigPoreIMOut,'bigPoreIMOut')
+ps.io.to_vtk(smallPoreIMOut,'smallPoreIMOut')
+ps.io.to_vtk(highFlowBigIMOut,'highFlowBig')
+ps.io.to_vtk(lowFlowBigIMOut,'lowFlowBig')
+ps.io.to_vtk(secondaryImage,'secondaryImage')
+ps.io.to_vtk(primaryImage,'primaryImage')
+ps.io.to_vtk(velDataNormSecondary,'velDataNormSecondary')
+print('Finished writing')
+print('----------------------------------------------')
 
 
 print('Number of big pores is',str(bigPoreCount))
