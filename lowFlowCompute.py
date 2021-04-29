@@ -19,10 +19,10 @@ primaryImage[primaryImage == 255] = 1
 primaryImage = np.transpose(primaryImage)
 secondaryImage = np.transpose(secondaryImage)
 
-velSecondaryMat = sio.loadmat(dir_path+'/velocityFiles/velocityNormCodeSecondary_0_00005.mat')
+velSecondaryMat = sio.loadmat(dir_path+'/velocityFiles/velocityNormCodeSecondary_0_00002.mat')
 velDataNormSecondary = velSecondaryMat['velNorm']
 
-velPrimaryMat = sio.loadmat(dir_path+'/velocityFiles/velocityNormCodePrimary_0_00005.mat')
+velPrimaryMat = sio.loadmat(dir_path+'/velocityFiles/velocityNormCodePrimary_0_00002.mat')
 velDataNormPrimary = velPrimaryMat['velNorm']
 
 # Define overall variables used to analyze the data
@@ -30,7 +30,7 @@ resolution = 16.81E-6 # adding resolution in meters
 lowFlowVelCutoff = 2.37 * 10 ** float(-5) # 0.5 * 10 ** float(-5)
 poreDiamThresh = 20
 poreVolumeThresh = 100000
-simPressure = 0.00005
+simPressure = 0.00002
 
 # Secondary
 #################################################
@@ -248,7 +248,7 @@ plt.close()
 yMax = 0.0001
 
 fig, axes = plt.subplots(1, 2, figsize=(18, 10))
-fig.suptitle('Both Samples', fontsize=24)
+fig.suptitle('Velocity Histogram for Pore Pressure ='+str(), fontsize=20)
 
 axes[0].scatter(primarySkeletonPoreVolume, primary_metric_PoreVelocity)
 axes[0].set_xlabel('Pore Volume (lattice units)', fontsize=18)
