@@ -19,18 +19,18 @@ primaryImage[primaryImage == 255] = 1
 primaryImage = np.transpose(primaryImage)
 secondaryImage = np.transpose(secondaryImage)
 
-velSecondaryMat = sio.loadmat(dir_path+'/velocityFiles/velocityNormCodeSecondary_0_00008.mat')
+velSecondaryMat = sio.loadmat(dir_path+'/velocityFiles/velocityNormCodeSecondary_0_00005.mat')
 velDataNormSecondary = velSecondaryMat['velNorm']
 
-velPrimaryMat = sio.loadmat(dir_path+'/velocityFiles/velocityNormCodePrimary_0_00008.mat')
+velPrimaryMat = sio.loadmat(dir_path+'/velocityFiles/velocityNormCodePrimary_0_00005.mat')
 velDataNormPrimary = velPrimaryMat['velNorm']
 
 # Define overall variables used to analyze the data
 resolution = 16.81E-6 # adding resolution in meters
-lowFlowVelCutoff = 1.42 * 10 ** float(-5) # 0.5 * 10 ** float(-5)
+lowFlowVelCutoff = 2.37 * 10 ** float(-5) # 0.5 * 10 ** float(-5)
 poreDiamThresh = 20
-poreVolumeThresh = 35000
-simPressure = 0.00008
+poreVolumeThresh = 100000
+simPressure = 0.00005
 
 # Secondary
 #################################################
@@ -165,6 +165,7 @@ p1.imshow(velDataNormPrimary[:,:,slice])
 p2.imshow(primaryImage[:,:,slice])
 
 fig.savefig('primaryPoreImage.png', dpi=300, facecolor='w', edgecolor='w')
+plt.close()
 
 fig, (p1, p2) = plt.subplots(1, 2)
 
@@ -173,32 +174,31 @@ p1.imshow(velDataNormSecondary[:,:,slice])
 p2.imshow(secondaryImage[:,:,slice])
 
 fig.savefig('secondaryPoreImage.png', dpi=300, facecolor='w', edgecolor='w')
+plt.close()
 
 ################################
 
+yMax = 100
 fig, axes = plt.subplots(1, 2, figsize=(18, 10))
-sns.distplot(primaryPoreVolumeVec, ax=axes[0], hist=True, kde=False,
-             bins=int(80), color = 'darkblue',
-             hist_kws={'edgecolor':'black'},
-             kde_kws={'linewidth': 4})
+
+sns.histplot(data=primaryPoreVolumeVec, ax=axes[0],
+             bins=int(40))
 axes[0].set_title('Primary porosity only')
 axes[0].set_xlabel('Pore Volume (Lattice units)')
-axes[0].set_ylim([0,100])
+axes[0].set_ylim([0,yMax])
 axes[0].plot([poreVolumeThresh, poreVolumeThresh],[0,yMax],'r',lw=5)
 
-sns.distplot(secondaryPoreVolumeVec, ax=axes[1], hist=True, kde=False,
-             bins=int(80), color = 'darkblue',
-             hist_kws={'edgecolor':'black'},
-             kde_kws={'linewidth': 4})
+sns.histplot(data=secondaryPoreVolumeVec, ax=axes[1],
+             bins=int(40))
 axes[1].set_title('Added Secondary porosity')
 axes[1].set_xlabel('Pore Volume (Lattice units)')
-axes[1].set_ylim([0,100])
+axes[1].set_ylim([0,yMax])
 axes[1].plot([poreVolumeThresh, poreVolumeThresh],[0,yMax],'r',lw=5)
 
 figStr = 'poreVolumeHist_pressure_'+str(simPressure)+'.png'
-fig.show()
+#fig.show()
 fig.savefig(figStr, dpi=300, facecolor='w', edgecolor='w')
-
+plt.close()
 
 ################################
 
@@ -215,29 +215,32 @@ df_secondary = pd.DataFrame({'skelVelSecondary': secondary_metric_PoreVelocity,
 
 
 ############################################################
+yMax = 100
+
+primaryClrs = ['grey' if (x <  lowFlowVelCutoff) else 'mediumturquoise' for x in bins ]
+secondaryClrs = ['grey' if (x <  lowFlowVelCutoff) else 'mediumturquoise' for x in bins]
 
 fig, axes = plt.subplots(1, 2, figsize=(20, 16))
 
-sns.countplot(data=df_primary,x='vel_groupPrimary',ax=axes[0] )
-sns.countplot(data=df_secondary,x='vel_groupSecondary',ax=axes[1])
+sns.countplot(data=df_primary,x='vel_groupPrimary',ax=axes[0], palette=primaryClrs)
+sns.countplot(data=df_secondary,x='vel_groupSecondary',ax=axes[1], palette=secondaryClrs)
 
 axes[0].set_title('Primary Sample', fontsize=24)
 axes[0].tick_params(axis='x', labelrotation=90)
-axes[0].set_ylim([0,100])
+axes[0].set_ylim([0,yMax])
 axes[0].set_xlabel('Pore Velocity Metric Range on Skeleton', fontsize=18)
 axes[0].set_ylabel('Count', fontsize=18)
-axes[0].plot([lowFlowVelCutoff, lowFlowVelCutoff],[0,yMax],'r',lw=5)
 
 axes[1].set_title('Secondary Sample', fontsize=24)
 axes[1].tick_params(axis='x', labelrotation=90)
-axes[1].set_ylim([0,100])
+axes[1].set_ylim([0,yMax])
 axes[1].set_xlabel('Pore Velocity Metric Range on Skeleton', fontsize=18)
 axes[1].set_ylabel('Count', fontsize=18)
-axes[1].plot([lowFlowVelCutoff, lowFlowVelCutoff],[0,yMax],'r',lw=5)
 
 figStr = 'poreVelocityHist_pressure_'+str(simPressure)+'.png'
-fig.show()
+#fig.show()
 fig.savefig(figStr, dpi=300, facecolor='w', edgecolor='w')
+plt.close()
 
 
 ########################################
@@ -266,27 +269,28 @@ axes[1].plot([poreVolumeThresh, poreVolumeThresh],[0,yMax],'r',lw=5)
 axes[1].plot([0,np.max(secondarySkeletonPoreVolume)],[lowFlowVelCutoff, lowFlowVelCutoff],'g',lw=5)
 
 figStr = 'poreRegion_pressure_'+str(simPressure)+'.png'
-fig.show()
+#fig.show()
 fig.savefig(figStr, dpi=300, facecolor='w', edgecolor='w')
+plt.close()
 
 
 # Output flow region info
 ########################################################################################################
-bigSecondaryPores = secondarySkeletonPoreVolume[secondarySkeletonPoreVolume > poreVolumeThresh]
-bigSecondaryPoreRegions = secondarySkeletonPoreRegion[secondarySkeletonPoreVolume > poreVolumeThresh]
-bigSecondaryPoreVel = secondary_metric_PoreVelocity[secondarySkeletonPoreVolume > poreVolumeThresh]
+bigSecondaryPores = secondarySkeletonPoreVolume[secondarySkeletonPoreVolume >= poreVolumeThresh]
+bigSecondaryPoreRegions = secondarySkeletonPoreRegion[secondarySkeletonPoreVolume >= poreVolumeThresh]
+bigSecondaryPoreVel = secondary_metric_PoreVelocity[secondarySkeletonPoreVolume >= poreVolumeThresh]
 #lowFlowPores = bigSecondaryPores[]
 
-smallSecondaryPores = secondarySkeletonPoreVolume[secondarySkeletonPoreVolume <= poreVolumeThresh]
-smallSecondaryPoreRegions = secondarySkeletonPoreRegion[secondarySkeletonPoreVolume <= poreVolumeThresh]
-smallSecondaryPoreVel = secondary_metric_PoreVelocity[secondarySkeletonPoreVolume <= poreVolumeThresh]
+smallSecondaryPores = secondarySkeletonPoreVolume[secondarySkeletonPoreVolume < poreVolumeThresh]
+smallSecondaryPoreRegions = secondarySkeletonPoreRegion[secondarySkeletonPoreVolume < poreVolumeThresh]
+smallSecondaryPoreVel = secondary_metric_PoreVelocity[secondarySkeletonPoreVolume < poreVolumeThresh]
 
 
-lowFlowBigPoreRegions = bigSecondaryPoreRegions[bigSecondaryPoreVel <= lowFlowVelCutoff]
-lowFlowBigPoreDiam = bigSecondaryPores[bigSecondaryPoreVel <= lowFlowVelCutoff]
-lowFlowBigPoreFlow = bigSecondaryPoreVel[bigSecondaryPoreVel <= lowFlowVelCutoff]
+lowFlowBigPoreRegions = bigSecondaryPoreRegions[bigSecondaryPoreVel < lowFlowVelCutoff]
+lowFlowBigPoreDiam = bigSecondaryPores[bigSecondaryPoreVel < lowFlowVelCutoff]
+lowFlowBigPoreFlow = bigSecondaryPoreVel[bigSecondaryPoreVel < lowFlowVelCutoff]
 
-highFlowBigPoreDiam = bigSecondaryPores[bigSecondaryPoreVel > lowFlowVelCutoff]
+highFlowBigPoreDiam = bigSecondaryPores[bigSecondaryPoreVel >= lowFlowVelCutoff]
 
 print('There are',str(len(lowFlowBigPoreDiam)),'low flow pores of large pore diameter')
 print('There are',str(len(highFlowBigPoreDiam)),'high flow pores of large pore diameter')
@@ -305,11 +309,14 @@ for a in tqdm.tqdm(range(0,len(secondarySkeletonPoreRegion)),'Flow Velocity Loop
         regionInds = np.where(secondaryRegions == currentRegion)
         lowFlowBigIM[regionInds] = 1
         lowFlowBigCount = lowFlowBigCount + 1
+        regionInds = 0
     else:
         if secondarySkeletonPoreVolume[a] > poreVolumeThresh:
             regionInds = np.where(secondaryRegions == currentRegion)
             highFlowBigIM[regionInds] = 1
             highFlowBigCount = highFlowBigCount + 1
+            regionInds = 0
+
             #print('High Flow Big Pore', str(currentRegion))
 
 
@@ -331,6 +338,8 @@ for a in tqdm.tqdm(range(0,len(secondarySkeletonPoreRegion)),'Pore Volume Loop')
         bigPoreIM[regionInds] = 1
         smallPoreIM[regionInds] = 0
         bigPoreCount = bigPoreCount + 1
+        regionInds = 0
+
 
 # Format data for paraview output
 bigPoreIMOut = np.copy(bigPoreIM)
