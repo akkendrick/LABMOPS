@@ -19,25 +19,25 @@ primaryImage[primaryImage == 255] = 1
 primaryImage = np.transpose(primaryImage)
 secondaryImage = np.transpose(secondaryImage)
 
-velSecondaryMat = sio.loadmat(dir_path+'/velocityFiles/velocityNormCodeSecondary_0_00002.mat')
+velSecondaryMat = sio.loadmat(dir_path+'/velocityFiles/velocityNormCodeSecondary_0_001.mat')
 velDataNormSecondary = velSecondaryMat['velNorm']
 
-velPrimaryMat = sio.loadmat(dir_path+'/velocityFiles/velocityNormCodePrimary_0_00002.mat')
+velPrimaryMat = sio.loadmat(dir_path+'/velocityFiles/velocityNormCodePrimary_0_001.mat')
 velDataNormPrimary = velPrimaryMat['velNorm']
 
 # Define overall variables used to analyze the data
 resolution = 16.81E-6 # adding resolution in meters
-lowFlowVelCutoff = 2.37 * 10 ** float(-5) # 0.5 * 10 ** float(-5)
+lowFlowVelCutoff = 5.13 * 10 ** float(-5) # 0.5 * 10 ** float(-5)
 poreDiamThresh = 20
 poreVolumeThresh = 100000
-simPressure = 0.00002
+simPressure = 0.001
 
 # Secondary
 #################################################
-snowFiltSecondary = ps.filters.snow_partitioning(im=secondaryImage,r_max=4,sigma=0.4, return_all=True)
-poreInfoSecondary = ps.networks.regions_to_network(snowFiltSecondary.regions, dt=snowFiltSecondary.dt)
+snowFiltSecondary = ps.filters.snow_partitioning_parallel(secondaryImage)
+poreInfoSecondary = ps.networks.regions_to_network(snowFiltSecondary)
+nRegions = np.unique(snowFiltSecondary).size
 
-nRegions = np.unique(snowFiltSecondary.regions).size
 secondaryPoreDiamVec = np.zeros(nRegions,)
 secondaryPoreVolumeVec = np.zeros(nRegions,)
 
@@ -45,7 +45,7 @@ for a in range(0, poreInfoSecondary['pore.diameter'].size):
     secondaryPoreDiamVec[a] = poreInfoSecondary['pore.diameter'][a]
     secondaryPoreVolumeVec[a] = poreInfoSecondary['pore.volume'][a]
 
-secondaryRegions = snowFiltSecondary.regions
+secondaryRegions = snowFiltSecondary
 
 # Skeleton for secondary image
 cubeSize = len(secondaryImage)
@@ -74,7 +74,7 @@ for a in tqdm.tqdm(range(0,len(allSecondaryRegions)), 'Secondary Regions Loop'):
             if currentRegion != 0: # Don't want grains to be counted
                 if visit[currentRegion] == 0:
                     visit[currentRegion] = 1
-                    # Adjust indices for pore information, currentRegion = 0 is pore 1 in poreInfo
+
                     regionImage = np.where(secondaryPoreRegionSkeleton == currentRegion)
                     skeletonPoreVel = secondaryVelocitiesSkeleton[regionImage]
 
@@ -92,10 +92,10 @@ for a in tqdm.tqdm(range(0,len(allSecondaryRegions)), 'Secondary Regions Loop'):
 
 # Primary
 #################################################
-snowFiltPrimary = ps.filters.snow_partitioning(im=primaryImage,r_max=4,sigma=0.4, return_all=True)
-poreInfoPrimary = ps.networks.regions_to_network(snowFiltPrimary.regions, dt=snowFiltPrimary.dt)
+snowFiltPrimary = ps.filters.snow_partitioning_parallel(primaryImage)
+poreInfoPrimary = ps.networks.regions_to_network(snowFiltPrimary)
 
-nRegions = np.unique(snowFiltPrimary.regions).size
+nRegions = np.unique(snowFiltPrimary).size
 primaryPoreDiamVec = np.zeros(nRegions,)
 primaryPoreVolumeVec = np.zeros(nRegions,)
 
@@ -103,7 +103,7 @@ for a in range(0, poreInfoPrimary['pore.diameter'].size):
     primaryPoreDiamVec[a] = poreInfoPrimary['pore.diameter'][a]
     primaryPoreVolumeVec[a] = poreInfoPrimary['pore.volume'][a]
 
-primaryRegions = snowFiltPrimary.regions
+primaryRegions = snowFiltPrimary
 
 # Skeleton for primary image
 cubeSize = len(primaryImage)
@@ -120,7 +120,7 @@ primarySkeletonPoreVolume = []
 primarySkelImage = ski.morphology.skeletonize(primaryImage)
 
 # Save data on the skeleton
-primaryVelocitiesSkeleton = []
+#primaryVelocitiesSkeleton = []
 primaryPoreDiamSkeleton = []
 
 primaryFiltSkelImage = np.where(primarySkelImage,True,False)
@@ -136,7 +136,6 @@ for a in tqdm.tqdm(range(0,len(allPrimaryRegions)), 'Primary Regions loop'):
                     regionImage = np.where(primaryPoreRegionSkeleton == currentRegion)
                     skeletonPoreVel = primaryVelocitiesSkeleton[regionImage]
 
-                    #skeletonPoreVel = primaryVelocitiesSkeleton[primaryPoreRegionSkeleton == currentRegion]
                     primaryMeanPoreVelocity = np.append(primaryMeanPoreVelocity, np.mean(skeletonPoreVel))
                     primary_metric_PoreVelocity = np.append(primary_metric_PoreVelocity, np.median(skeletonPoreVel))
 
@@ -202,10 +201,13 @@ plt.close()
 
 ################################
 
-bins = np.linspace(0, 0.00009, num=20)
+bins = np.linspace(0.000002, 0.0001, num=30)
 #np.append(bins,0.0001)
-bins = np.append(bins, 0.0001)
+bins = np.append(bins, 1000)
+bins = np.insert(bins, 0, 0)
 bins = np.insert(bins, 1, 0.00000001)
+bins = np.insert(bins, 2, 0.0000001)
+bins = np.insert(bins, 3, 0.000001)
 
 df_primary = pd.DataFrame({'skelVelPrimary': primary_metric_PoreVelocity,
                         'vel_groupPrimary': pd.cut(primary_metric_PoreVelocity, bins=bins, right=False)})
@@ -248,7 +250,7 @@ plt.close()
 yMax = 0.0001
 
 fig, axes = plt.subplots(1, 2, figsize=(18, 10))
-fig.suptitle('Velocity Histogram for Pore Pressure ='+str(), fontsize=20)
+fig.suptitle('Velocity Histogram for Pore Pressure ='+str(simPressure), fontsize=20)
 
 axes[0].scatter(primarySkeletonPoreVolume, primary_metric_PoreVelocity)
 axes[0].set_xlabel('Pore Volume (lattice units)', fontsize=18)
@@ -398,10 +400,10 @@ lessMobileOnes = np.sum(lowFlowBigIM)
 total = np.sum(flippedImage) + np.sum(secondaryImage)
 
 lessMobilePorosity = lessMobileOnes/total
-print('Less mobile porosity estimate:')
+print('Less mobile big porosity estimate:')
 print(np.round(lessMobilePorosity,2))
 
-print('Less mobile fraction of porosity')
+print('Less mobile big porosity fraction of porosity')
 lessMobileFrac = (lessMobilePorosity/porosityCalc)
 print(np.round(lessMobileFrac,2))
 
