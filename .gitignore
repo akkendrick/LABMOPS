@@ -1081,3 +1081,13 @@ Makefile~
 *.npy
 
 *.mat
+
+*.vtp
+
+*.npy#
+
+.idea/
+
+*.ipynb
+
+knightbladeOut
