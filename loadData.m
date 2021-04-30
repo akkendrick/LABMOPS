@@ -4,9 +4,10 @@ nx = 512;
 ny = 512;
 nz = 512;
 %%
-load velocityNormCodeSecondary_0.00002.dat;
+load velocityCodePrimary_0.001.dat;
 %%
-velNorm = reshape(velocityNormCodeSecondary_0_00002, nx, ny, []);
+
+vel3 = reshape(velocityCodePrimary_0.001, nx, ny, nz, []);
 
 %%
 %imagesc(velNorm(1:end,1:end,125,3));

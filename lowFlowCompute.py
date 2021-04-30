@@ -8,8 +8,20 @@ import os
 import seaborn as sns
 import pandas as pd
 
+from decimal import Decimal
+
+# def number2string(a):
+#     b = format(Decimal(str(a)).normalize(), 'f')
+#
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
+# Define overall variables used to analyze the data
+resolution = 16.81E-6 # adding resolution in meters
+lowFlowVelCutoff = 7.16 * 10 ** float(-6) #0.000207 # 5.13 * 10 ** float(-5) # 0.5 * 10 ** float(-5)
+poreDiamThresh = 20
+poreVolumeThresh = 100000
+simPressure = 0.00002
 imageSize = 512
 
 primaryImage = np.load('subBeadPackPy512_justSpheres.npy')
@@ -19,18 +31,15 @@ primaryImage[primaryImage == 255] = 1
 primaryImage = np.transpose(primaryImage)
 secondaryImage = np.transpose(secondaryImage)
 
-velSecondaryMat = sio.loadmat(dir_path+'/velocityFiles/velocityNormCodeSecondary_0_001.mat')
-velDataNormSecondary = velSecondaryMat['velNorm']
+velNormSecondaryMat = sio.loadmat(dir_path+'/velocityFiles/velocityNormCodeSecondary_'+
+                                  format(Decimal(str(simPressure)).normalize(), 'f')+'.mat')
+velDataNormSecondary = velNormSecondaryMat['velNorm']
 
-velPrimaryMat = sio.loadmat(dir_path+'/velocityFiles/velocityNormCodePrimary_0_001.mat')
-velDataNormPrimary = velPrimaryMat['velNorm']
+velNormPrimaryMat = sio.loadmat(dir_path+'/velocityFiles/velocityNormCodePrimary_'
+                                +format(Decimal(str(simPressure)).normalize(), 'f')+'.mat')
+velDataNormPrimary = velNormPrimaryMat['velNorm']
 
-# Define overall variables used to analyze the data
-resolution = 16.81E-6 # adding resolution in meters
-lowFlowVelCutoff = 5.13 * 10 ** float(-5) # 0.5 * 10 ** float(-5)
-poreDiamThresh = 20
-poreVolumeThresh = 100000
-simPressure = 0.001
+
 
 # Secondary
 #################################################
@@ -201,13 +210,16 @@ plt.close()
 
 ################################
 
-bins = np.linspace(0.000002, 0.0001, num=30)
+bins = np.linspace(0.000002, 0.00005, num=20)
 #np.append(bins,0.0001)
 bins = np.append(bins, 1000)
 bins = np.insert(bins, 0, 0)
 bins = np.insert(bins, 1, 0.00000001)
 bins = np.insert(bins, 2, 0.0000001)
 bins = np.insert(bins, 3, 0.000001)
+
+np.save('medianPrimaryPoreVel.npy',primary_metric_PoreVelocity)
+np.save('medianSecondaryPoreVel.npy',secondary_metric_PoreVelocity)
 
 df_primary = pd.DataFrame({'skelVelPrimary': primary_metric_PoreVelocity,
                         'vel_groupPrimary': pd.cut(primary_metric_PoreVelocity, bins=bins, right=False)})
@@ -217,10 +229,10 @@ df_secondary = pd.DataFrame({'skelVelSecondary': secondary_metric_PoreVelocity,
 
 
 ############################################################
-yMax = 100
+yMax = 400
 
-primaryClrs = ['grey' if (x <  lowFlowVelCutoff) else 'mediumturquoise' for x in bins ]
-secondaryClrs = ['grey' if (x <  lowFlowVelCutoff) else 'mediumturquoise' for x in bins]
+primaryClrs = ['grey' if (x < lowFlowVelCutoff) else 'mediumturquoise' for x in bins ]
+secondaryClrs = ['grey' if (x < lowFlowVelCutoff) else 'mediumturquoise' for x in bins]
 
 fig, axes = plt.subplots(1, 2, figsize=(20, 16))
 fig.suptitle('Velocity Histogram for Pore Pressure ='+str(simPressure), fontsize=20)
@@ -241,7 +253,8 @@ axes[1].set_xlabel('Pore Velocity Metric Range on Skeleton', fontsize=18)
 axes[1].set_ylabel('Count', fontsize=18)
 
 figStr = 'poreVelocityHist_pressure_'+str(simPressure)+'.png'
-#fig.show()
+
+plt.show()
 fig.savefig(figStr, dpi=300, facecolor='w', edgecolor='w')
 plt.close()
 
@@ -272,7 +285,8 @@ axes[1].plot([poreVolumeThresh, poreVolumeThresh],[0,yMax],'r',lw=5)
 axes[1].plot([0,np.max(secondarySkeletonPoreVolume)],[lowFlowVelCutoff, lowFlowVelCutoff],'g',lw=5)
 
 figStr = 'poreRegion_pressure_'+str(simPressure)+'.png'
-#fig.show()
+
+plt.show()
 fig.savefig(figStr, dpi=300, facecolor='w', edgecolor='w')
 plt.close()
 
