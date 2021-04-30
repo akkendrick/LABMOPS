@@ -223,6 +223,7 @@ primaryClrs = ['grey' if (x <  lowFlowVelCutoff) else 'mediumturquoise' for x in
 secondaryClrs = ['grey' if (x <  lowFlowVelCutoff) else 'mediumturquoise' for x in bins]
 
 fig, axes = plt.subplots(1, 2, figsize=(20, 16))
+fig.suptitle('Velocity Histogram for Pore Pressure ='+str(simPressure), fontsize=20)
 
 sns.countplot(data=df_primary,x='vel_groupPrimary',ax=axes[0], palette=primaryClrs)
 sns.countplot(data=df_secondary,x='vel_groupSecondary',ax=axes[1], palette=secondaryClrs)
@@ -250,7 +251,7 @@ plt.close()
 yMax = 0.0001
 
 fig, axes = plt.subplots(1, 2, figsize=(18, 10))
-fig.suptitle('Velocity Histogram for Pore Pressure ='+str(simPressure), fontsize=20)
+fig.suptitle('Pore volume vs Median pore velocity for Pore Pressure ='+str(simPressure), fontsize=20)
 
 axes[0].scatter(primarySkeletonPoreVolume, primary_metric_PoreVelocity)
 axes[0].set_xlabel('Pore Volume (lattice units)', fontsize=18)
