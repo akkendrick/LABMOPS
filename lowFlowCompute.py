@@ -18,10 +18,10 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 
 # Define overall variables used to analyze the data
 resolution = 16.81E-6 # adding resolution in meters
-lowFlowVelCutoff = 7.16 * 10 ** float(-6) #0.000207 # 5.13 * 10 ** float(-5) # 0.5 * 10 ** float(-5)
+lowFlowVelCutoff = 5.13 * 10 ** float(-5) # 7.16 * 10 ** float(-6) #0.000207  # 0.5 * 10 ** float(-5)
 poreDiamThresh = 20
 poreVolumeThresh = 100000
-simPressure = 0.00002
+simPressure = 0.00005
 imageSize = 512
 
 primaryImage = np.load('subBeadPackPy512_justSpheres.npy')
@@ -45,8 +45,14 @@ velDataNormPrimary = velNormPrimaryMat['velNorm']
 #################################################
 snowFiltSecondary = ps.filters.snow_partitioning_parallel(secondaryImage)
 poreInfoSecondary = ps.networks.regions_to_network(snowFiltSecondary)
-nRegions = np.unique(snowFiltSecondary).size
 
+outName = 'secondarySnowOut.npy'
+np.save(outName,snowFiltSecondary)
+
+outName = 'secondaryPoreInfo.npy'
+np.save(outName,poreInfoSecondary)
+
+nRegions = np.unique(snowFiltSecondary).size
 secondaryPoreDiamVec = np.zeros(nRegions,)
 secondaryPoreVolumeVec = np.zeros(nRegions,)
 
@@ -103,6 +109,12 @@ for a in tqdm.tqdm(range(0,len(allSecondaryRegions)), 'Secondary Regions Loop'):
 #################################################
 snowFiltPrimary = ps.filters.snow_partitioning_parallel(primaryImage)
 poreInfoPrimary = ps.networks.regions_to_network(snowFiltPrimary)
+
+outName = 'primarySnowOut.npy'
+np.save(outName,snowFiltPrimary)
+
+outName = 'primaryPoreInfo.npy'
+np.save(outName,poreInfoPrimary)
 
 nRegions = np.unique(snowFiltPrimary).size
 primaryPoreDiamVec = np.zeros(nRegions,)
