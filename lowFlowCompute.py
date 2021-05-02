@@ -7,7 +7,7 @@ import tqdm
 import os
 import seaborn as sns
 import pandas as pd
-
+import pickle as pkl
 from decimal import Decimal
 
 # def number2string(a):
@@ -49,8 +49,8 @@ poreInfoSecondary = ps.networks.regions_to_network(snowFiltSecondary)
 outName = 'secondarySnowOut.npy'
 np.save(outName,snowFiltSecondary)
 
-outName = 'secondaryPoreInfo.npy'
-np.save(outName,poreInfoSecondary)
+outName = 'secondaryPoreInfo.p'
+pkl.dump(poreInfoSecondary, open(outName,"wb"))
 
 nRegions = np.unique(snowFiltSecondary).size
 secondaryPoreDiamVec = np.zeros(nRegions,)
@@ -113,8 +113,8 @@ poreInfoPrimary = ps.networks.regions_to_network(snowFiltPrimary)
 outName = 'primarySnowOut.npy'
 np.save(outName,snowFiltPrimary)
 
-outName = 'primaryPoreInfo.npy'
-np.save(outName,poreInfoPrimary)
+outName = 'primaryPoreInfo.p'
+pkl.dump(poreInfoPrimary, open(outName,"wb"))
 
 nRegions = np.unique(snowFiltPrimary).size
 primaryPoreDiamVec = np.zeros(nRegions,)
